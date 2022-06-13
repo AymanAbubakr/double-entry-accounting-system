@@ -13,7 +13,7 @@ class TransactionRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +24,10 @@ class TransactionRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'credit_account_id' => 'required|integer',
+            'debit_account_id' => 'required|integer',
+            'credit_amount' => 'required|numeric',
+            'comment' => 'optional|string',
         ];
     }
 }
