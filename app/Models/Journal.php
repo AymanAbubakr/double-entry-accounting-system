@@ -36,14 +36,13 @@ class Journal extends Model
 
     public static function addRow($data)
     {
-
         return Journal::create([
-            'credit_account_id' => $data['credit_account_id'],
-            'debit_account_id' => $data['debit_account_id'],
-            'amount' => $data['amount'],
-            'comment' => $data['comment'],
-            'reference_id' => $data['reference_id'],
-            'contact_id' => $data['contact_id'],
+            'credit_account_id' => $data->credit_account_id,
+            'debit_account_id' => $data->debit_account_id,
+            'amount' => $data->amount,
+            'comment' => $data->comment,
+            'reference_id' => $data->reference_id,
+            'contact_id' => $data->contact_id,
         ]);
     }
 }
