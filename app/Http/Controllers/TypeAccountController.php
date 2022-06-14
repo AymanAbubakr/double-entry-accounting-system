@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\TypeAccount;
 use Illuminate\Http\Request;
 
-class TypeAccountController extends Controller
+class TypeAccountController extends BaseController
 {
     /**
      * Display a listing of the resource.

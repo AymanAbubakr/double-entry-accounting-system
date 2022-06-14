@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Journal;
 use App\Models\TypeAccount;
 
-class TransactionController extends Controller
+class TransactionController extends BaseController
 {
     /**
      * Display a listing of the resource.
