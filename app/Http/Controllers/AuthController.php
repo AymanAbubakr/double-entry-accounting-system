@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AuthRequest;
+use App\Http\Requests\AuthRequestLogin;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -37,32 +38,16 @@ class AuthController extends Controller
      * @param Request $request
      * @return User
      */
-    public function loginUser(Request $request)
+    public function loginUser(AuthRequestLogin $authRequestLogin)
     {
-        $validateUser = Validator::make(
-            $request->all(),
-            [
-                'email' => 'required|email',
-                'password' => 'required',
-            ]
-        );
-
-        if ($validateUser->fails()) {
+        if (!Auth::attempt($authRequestLogin->only(['email', 'password']))) {
             return response()->json([
                 'status' => false,
-                'message' => 'validation error',
-                'errors' => $validateUser->errors()
+                'message' => 'Wrong Email Or Password !',
             ], 401);
         }
 
-        if (!Auth::attempt($request->only(['email', 'password']))) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Email & Password does not match with our record.',
-            ], 401);
-        }
-
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $authRequestLogin->email)->first();
 
         return response()->json([
             'status' => true,
