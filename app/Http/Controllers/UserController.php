@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Requests\UserRequest;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -43,7 +44,7 @@ class UserController extends Controller
         $user = User::create([
             'name' => $userRequest->name,
             'email' => $userRequest->email,
-            'password' => bcrypt($userRequest->password),
+            'password' =>  Hash::make($userRequest->password),
         ]);
 
         return response()->json([
