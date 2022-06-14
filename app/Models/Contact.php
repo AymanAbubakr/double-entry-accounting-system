@@ -14,4 +14,9 @@ class Contact extends Model
         'type_id',
         'deleted',
     ];
+
+    public static function getAll()
+    {
+        return Contact::all()->where('deleted', 0);
+    }
 }

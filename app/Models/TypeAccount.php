@@ -15,4 +15,9 @@ class TypeAccount extends Model
         'account_id',
         'deleted',
     ];
+
+    public static function getAll()
+    {
+        return TypeAccount::all()->where('deleted', 0);
+    }
 }

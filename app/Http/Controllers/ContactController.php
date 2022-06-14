@@ -5,32 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\Contact;
 use Illuminate\Http\Request;
 
-class ContactController extends Controller
+class ContactController extends BaseController
 {
-      /**
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        $contacts = Contact::all()->where('deleted', 0);
+        $contacts = Contact::getAll();
 
-        return response()->json([
-            'status' => true,
-            'contacts' => $contacts
-        ]);
+        return $this->sendResponse($contacts, 'Contacts retrieved successfully.');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -44,33 +32,7 @@ class ContactController extends Controller
             $request->only(['name', 'type_id'])
         );
 
-        return response()->json([
-            'message' => "Contact Created successfully!",
-            'contact' => $contact
-        ], 200);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Contact  $contact
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Contact $contact)
-    {
-        
-    }
-
-
-     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Contact  $contact
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Contact $contact)
-    {
-        //
+        return $this->sendResponse($contact, 'Contact created successfully.');
     }
 
 
@@ -87,10 +49,7 @@ class ContactController extends Controller
             $request->only(['name', 'type_id'])
         );
 
-        return response()->json([
-            'message' => "Contact Updated successfully!",
-            'contact' => $contact,
-        ], 200);
+        return $this->sendResponse($contact, 'Contact updated successfully.');
     }
 
     /**
@@ -103,8 +62,6 @@ class ContactController extends Controller
     {
         $contact->update(['deleted' => 1]);
 
-        return response()->json([
-            'message' => "Contact Deleted successfully!",
-        ], 200);
+        return $this->sendResponse($contact, 'Contact deleted successfully.');
     }
 }

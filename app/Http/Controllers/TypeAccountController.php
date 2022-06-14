@@ -7,29 +7,16 @@ use Illuminate\Http\Request;
 
 class TypeAccountController extends Controller
 {
-      /**
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        $typeAccounts = TypeAccount::all()->where('deleted', 0);
+        $typeAccounts = TypeAccount::getAll();
 
-        return response()->json([
-            'status' => true,
-            'typeAccounts' => $typeAccounts
-        ]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        return $this->sendResponse($typeAccounts, 'TypeAccounts retrieved successfully.');
     }
 
     /**
@@ -44,34 +31,9 @@ class TypeAccountController extends Controller
             $request->only(['name', 'type_id'])
         );
 
-        return response()->json([
-            'message' => "TypeAccount Created successfully!",
-            'typeAccount' => $typeAccount
-        ], 200);
+        return $this->sendResponse($typeAccount, 'TypeAccount created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\TypeAccount  $typeAccount
-     * @return \Illuminate\Http\Response
-     */
-    public function show(TypeAccount $typeAccount)
-    {
-        
-    }
-
-
-     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\TypeAccount  $typeAccount
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(TypeAccount $typeAccount)
-    {
-        //
-    }
 
 
     /**
@@ -87,10 +49,7 @@ class TypeAccountController extends Controller
             $request->only(['name', 'type_id'])
         );
 
-        return response()->json([
-            'message' => "TypeAccount Updated successfully!",
-            'typeAccount' => $typeAccount,
-        ], 200);
+        return $this->sendResponse($typeAccount, 'TypeAccount updated successfully.');
     }
 
     /**
@@ -103,8 +62,6 @@ class TypeAccountController extends Controller
     {
         $typeAccount->update(['deleted' => 1]);
 
-        return response()->json([
-            'message' => "TypeAccount Deleted successfully!",
-        ], 200);
+        return $this->sendResponse($typeAccount, 'TypeAccount deleted successfully.');
     }
 }

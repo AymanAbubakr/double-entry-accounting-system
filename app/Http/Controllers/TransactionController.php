@@ -30,6 +30,7 @@ class TransactionController extends Controller
 
 
         return response()->json([
+            'status' => true,
             'transactions' => $result,
         ]);
     }
@@ -55,6 +56,7 @@ class TransactionController extends Controller
         try {
             if ($transactionRequest->credit_account_id == $transactionRequest->debit_account_id) {
                 return response()->json([
+                    'status' => false,
                     'message' => "Credit and Debit account cannot be same!",
                 ], 400);
             }
@@ -89,6 +91,7 @@ class TransactionController extends Controller
 
 
             return response()->json([
+                'status' => true,
                 'message' => "Transaction Created successfully!",
             ], 200);
         } catch (\Exception $exp) {
@@ -110,6 +113,7 @@ class TransactionController extends Controller
 
             if ($journalTransaction == null) {
                 return response()->json([
+                    'status' => false,
                     'message' => "Transaction not found!",
                 ], 404);
             }
@@ -144,11 +148,13 @@ class TransactionController extends Controller
             DB::commit();
 
             return response()->json([
+                'status' => true,
                 'message' => "Transaction Reverted successfully!",
             ], 200);
         } catch (\Exception $exp) {
             DB::rollBack();
             return response([
+                'status' => false,
                 'message' => $exp->getMessage(),
             ], 400);
         }
@@ -159,6 +165,7 @@ class TransactionController extends Controller
 
         if ($contactTransactionRequest->credit_account_id == $contactTransactionRequest->debit_account_id) {
             return response()->json([
+                'status' => false,
                 'message' => "Credit and Debit account cannot be same!",
             ], 400);
         }
@@ -170,6 +177,7 @@ class TransactionController extends Controller
 
         if ($contact == null) {
             return response()->json([
+                'status' => false,
                 'message' => "Contact not found!",
             ], 404);
         }
@@ -198,6 +206,7 @@ class TransactionController extends Controller
 
         if (!$isCreditAccountFound || !$isDebitAccountFound) {
             return response()->json([
+                'status' => false,
                 'message' => "Credit or Debit account not found for this contact!",
             ], 404);
         }
@@ -233,11 +242,13 @@ class TransactionController extends Controller
             DB::commit();
 
             return response()->json([
+                'status' => true,
                 'message' => "Transaction Created successfully!",
             ], 200);
         } catch (\Exception $exp) {
             DB::rollBack();
             return response([
+                'status' => false,
                 'message' => $exp->getMessage(),
             ], 400);
         }

@@ -11,4 +11,10 @@ class Account extends Model
     protected $table = 'accounts';
     protected $primaryKey = 'id';
     protected $fillable = ['name', 'parent_id', 'deleted'];
+
+
+    public static function getAll()
+    {
+        return Account::all()->where('deleted', 0);
+    }
 }
