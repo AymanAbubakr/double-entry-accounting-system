@@ -17,8 +17,8 @@ return new class extends Migration
             $table->id();
             $table->integer('credit_account_id');
             $table->integer('debit_account_id');
-            $table->double('credit_amount');
-            $table->double('debit_amount');
+            $table->double('amount');
+            $table->enum('transaction_type', ['credit', 'debit']);
             $table->integer('journal_id');
             $table->tinyInteger('deleted')->default(0);
             $table->timestamps();
