@@ -35,14 +35,14 @@ class UserRequest extends FormRequest
             case 'PATCH':
                 return [
                     'name' => 'required|string|max:255',
-                    'email' => 'optional|string|email|max:255|unique:users',
-                    'password' => 'optional|string|min:6',
+                    'email' => 'sometimes|string|email|max:255|unique:users',
+                    'password' => 'sometimes|string|min:6',
                 ];
 
             default:
                 return [
                     'name' => 'required|string|max:255',
-                    'email' => 'optional|string|email|max:255|unique:users',
+                    'email' => 'sometimes|string|email|max:255|unique:users',
                 ];
         }
     }

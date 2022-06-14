@@ -26,8 +26,8 @@ class TransactionRequest extends FormRequest
         return [
             'credit_account_id' => 'required|integer',
             'debit_account_id' => 'required|integer',
-            'credit_amount' => 'required|numeric',
-            'comment' => 'optional|string',
+            'amount' => 'required|numeric',
+            'comment' => 'sometimes|string',
         ];
     }
 }
