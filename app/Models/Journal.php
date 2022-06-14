@@ -18,4 +18,32 @@ class Journal extends Model
         'reference_id',
         'contact_id',
     ];
+
+
+    public static function getAll()
+    {
+        return Journal::all()->where('deleted', 0);
+    }
+
+    public static function getOne($journalId)
+    {
+        return Journal::where([
+            ['id', $journalId],
+            ['deleted', 0]
+        ])->first();
+    }
+
+
+    public static function addRow($data)
+    {
+
+        return Journal::create([
+            'credit_account_id' => $data['credit_account_id'],
+            'debit_account_id' => $data['debit_account_id'],
+            'amount' => $data['amount'],
+            'comment' => $data['comment'],
+            'reference_id' => $data['reference_id'],
+            'contact_id' => $data['contact_id'],
+        ]);
+    }
 }

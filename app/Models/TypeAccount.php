@@ -20,4 +20,32 @@ class TypeAccount extends Model
     {
         return TypeAccount::all()->where('deleted', 0);
     }
+
+    public static function canProcessTransaction($creditAccountId, $debitAccountId, $typeId)
+    {
+
+        $typeAccounts = TypeAccount::whereIn(
+            'id',
+            [$creditAccountId, $debitAccountId]
+        )->where(
+            [
+                ['deleted', 0],
+                ['type_id', $typeId],
+            ]
+        )->get();
+
+        $isCreditAccountFound = false;
+        $isDebitAccountFound = false;
+
+
+        foreach ($typeAccounts as $typeAccount) {
+            if ($typeAccount->account_id == $creditAccountId) {
+                $isCreditAccountFound = true;
+            } else if ($typeAccount->account_id == $debitAccountId) {
+                $isDebitAccountFound = true;
+            }
+        }
+
+        return $isCreditAccountFound && $isDebitAccountFound;
+    }
 }

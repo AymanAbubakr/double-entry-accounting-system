@@ -20,30 +20,11 @@ class TransactionController extends Controller
      */
     public function index(Request $request)
     {
-        $result = [];
+        $result = Transaction::getAll($request);
 
-        if ($request->query('type') == 'single') {
-            $result = Journal::all()->where('deleted', 0);
-        } else {
-            $result = Transaction::all()->where('deleted', 0);
-        }
-
-
-        return response()->json([
-            'status' => true,
-            'transactions' => $result,
-        ]);
+        return $this->sendResponse($result, 'Transactions retrieved successfully.');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -55,45 +36,17 @@ class TransactionController extends Controller
     {
         try {
             if ($transactionRequest->credit_account_id == $transactionRequest->debit_account_id) {
-                return response()->json([
-                    'status' => false,
-                    'message' => "Credit and Debit account cannot be same!",
-                ], 400);
+                return $this->sendError('Debit and credit accounts cannot be the same.', [], 400);
             }
 
             DB::beginTransaction();
 
-            $journal = Journal::create([
-                'credit_account_id' => $transactionRequest->credit_account_id,
-                'debit_account_id' => $transactionRequest->debit_account_id,
-                'amount' => $transactionRequest->amount,
-                'comment' => $transactionRequest->comment,
-            ]);
-
-            Transaction::insert([
-                [
-                    'credit_account_id' => $transactionRequest->credit_account_id,
-                    'debit_account_id' => $transactionRequest->debit_account_id,
-                    'amount' => $transactionRequest->amount,
-                    'transaction_type' => 'credit',
-                    'journal_id' => $journal->id,
-                ],
-                [
-                    'credit_account_id' => $transactionRequest->credit_account_id,
-                    'debit_account_id' => $transactionRequest->debit_account_id,
-                    'amount' => $transactionRequest->amount,
-                    'transaction_type' => 'debit',
-                    'journal_id' => $journal->id,
-                ],
-            ]);
+            $journal = Journal::addRow($transactionRequest->all());
+            Transaction::batchInsert($transactionRequest->all(), $journal->id);
 
             DB::commit();
 
-
-            return response()->json([
-                'status' => true,
-                'message' => "Transaction Created successfully!",
-            ], 200);
+            return $this->sendResponse($journal, 'Transaction created successfully.');
         } catch (\Exception $exp) {
             DB::rollBack();
             return response([
@@ -106,57 +59,25 @@ class TransactionController extends Controller
     {
 
         try {
-            $journalTransaction = Journal::where([
-                ['id', $journalId],
-                ['deleted', 0]
-            ])->first();
+            $journalTransaction = Journal::getOne($journalId);
 
             if ($journalTransaction == null) {
-                return response()->json([
-                    'status' => false,
-                    'message' => "Transaction not found!",
-                ], 404);
+                return $this->sendError('Transaction not found.', [], 404);
             }
 
             DB::beginTransaction();
 
-            $journal = Journal::create([
-                'credit_account_id' => $journalTransaction->credit_account_id,
-                'debit_account_id' => $journalTransaction->debit_account_id,
-                'amount' => $journalTransaction->amount,
-                'comment' => $journalTransaction->comment,
-                'reference_id' => $journalId,
-            ]);
 
-            Transaction::insert([
-                [
-                    'credit_account_id' => $journalTransaction->debit_account_id,
-                    'debit_account_id' => $journalTransaction->credit_account_id,
-                    'amount' => $journalTransaction->amount,
-                    'transaction_type' => 'credit',
-                    'journal_id' => $journal->id,
-                ],
-                [
-                    'credit_account_id' => $journalTransaction->debit_account_id,
-                    'debit_account_id' => $journalTransaction->credit_account_id,
-                    'amount' => $journalTransaction->amount,
-                    'transaction_type' => 'debit',
-                    'journal_id' => $journal->id,
-                ],
-            ]);
+            $journal = Journal::addRow($journalTransaction);;
+
+            Transaction::batchInsert($journalTransaction, $journal->id);
 
             DB::commit();
 
-            return response()->json([
-                'status' => true,
-                'message' => "Transaction Reverted successfully!",
-            ], 200);
+            return $this->sendResponse($journal, 'Transaction reverted successfully.');
         } catch (\Exception $exp) {
             DB::rollBack();
-            return response([
-                'status' => false,
-                'message' => $exp->getMessage(),
-            ], 400);
+            return $this->sendError($exp->getMessage(), [], 400);
         }
     }
 
@@ -164,117 +85,43 @@ class TransactionController extends Controller
     {
 
         if ($contactTransactionRequest->credit_account_id == $contactTransactionRequest->debit_account_id) {
-            return response()->json([
-                'status' => false,
-                'message' => "Credit and Debit account cannot be same!",
-            ], 400);
+            return $this->sendError('Debit and credit accounts cannot be the same.', [], 400);;
         }
 
-        $contact = Contact::where([
-            ['id', $contactTransactionRequest->contact_id],
-            ['deleted', 0]
-        ])->first();
+        $contact = Contact::getOne($contactTransactionRequest->contact_id);
 
         if ($contact == null) {
-            return response()->json([
-                'status' => false,
-                'message' => "Contact not found!",
-            ], 404);
+            return $this->sendError('Contact not found.', [], 404);
         }
 
-        $typeAccounts = TypeAccount::whereIn(
-            'id',
-            [$contactTransactionRequest->credit_account_id, $contactTransactionRequest->debit_account_id]
-        )->where(
-            [
-                ['deleted', 0],
-                ['type_id', $contact->type_id],
-            ]
-        )->get();
+        $isAccountsAreValid = TypeAccount::canProcessTransaction(
+            $contactTransactionRequest->credit_account_id,
+            $contactTransactionRequest->debit_account_id,
+            $contact->type_id
+        );
 
-        $isCreditAccountFound = false;
-        $isDebitAccountFound = false;
-
-
-        foreach ($typeAccounts as $typeAccount) {
-            if ($typeAccount->account_id == $contactTransactionRequest->credit_account_id) {
-                $isCreditAccountFound = true;
-            } else if ($typeAccount->account_id == $contactTransactionRequest->debit_account_id) {
-                $isDebitAccountFound = true;
-            }
-        }
-
-        if (!$isCreditAccountFound || !$isDebitAccountFound) {
-            return response()->json([
-                'status' => false,
-                'message' => "Credit or Debit account not found for this contact!",
-            ], 404);
+        if (!$isAccountsAreValid) {
+            return $this->sendError('Accounts are not valid for this contact.', [], 404);
         }
 
         try {
             DB::beginTransaction();
 
-            $journal = Journal::create([
-                'credit_account_id' => $contactTransactionRequest->credit_account_id,
-                'debit_account_id' => $contactTransactionRequest->debit_account_id,
-                'amount' => $contactTransactionRequest->amount,
-                'comment' => $contactTransactionRequest->comment,
-                'contact_id' => $contactTransactionRequest->contact_id,
-            ]);
+            $journal = Journal::addRow($contactTransactionRequest->all());
 
-            Transaction::insert([
-                [
-                    'credit_account_id' => $contactTransactionRequest->credit_account_id,
-                    'debit_account_id' => $contactTransactionRequest->debit_account_id,
-                    'amount' => $contactTransactionRequest->amount,
-                    'transaction_type' => 'credit',
-                    'journal_id' => $journal->id,
-                ],
-                [
-                    'credit_account_id' => $contactTransactionRequest->credit_account_id,
-                    'debit_account_id' => $contactTransactionRequest->debit_account_id,
-                    'amount' => $contactTransactionRequest->amount,
-                    'transaction_type' => 'debit',
-                    'journal_id' => $journal->id,
-                ],
-            ]);
+            Transaction::batchInsert($contactTransactionRequest->all(), $journal->id);
 
             DB::commit();
 
-            return response()->json([
-                'status' => true,
-                'message' => "Transaction Created successfully!",
-            ], 200);
+            return $this->sendResponse($journal, 'Transaction created successfully.');
         } catch (\Exception $exp) {
             DB::rollBack();
-            return response([
-                'status' => false,
-                'message' => $exp->getMessage(),
-            ], 400);
+
+            return $this->sendError($exp->getMessage(), [], 400);
         }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Transaction  $transaction
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Transaction $transaction)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Transaction  $transaction
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Transaction $transaction)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.

@@ -19,4 +19,12 @@ class Contact extends Model
     {
         return Contact::all()->where('deleted', 0);
     }
+
+    public static function getOne($contactId)
+    {
+        return  Contact::where([
+            ['id', $contactId],
+            ['deleted', 0]
+        ])->first();
+    }
 }
