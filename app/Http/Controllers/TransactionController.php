@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ContactTransactionRequest;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Http\Requests\TransactionRequest;
+use App\Models\Contact;
 use Illuminate\Support\Facades\DB;
 use App\Models\Journal;
+use App\Models\TypeAccount;
 
 class TransactionController extends Controller
 {
@@ -142,6 +145,95 @@ class TransactionController extends Controller
 
             return response()->json([
                 'message' => "Transaction Reverted successfully!",
+            ], 200);
+        } catch (\Exception $exp) {
+            DB::rollBack();
+            return response([
+                'message' => $exp->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function contactTransaction(ContactTransactionRequest $contactTransactionRequest)
+    {
+
+        if ($contactTransactionRequest->credit_account_id == $contactTransactionRequest->debit_account_id) {
+            return response()->json([
+                'message' => "Credit and Debit account cannot be same!",
+            ], 400);
+        }
+
+        $contact = Contact::where([
+            ['id', $contactTransactionRequest->contact_id],
+            ['deleted', 0]
+        ])->first();
+
+        if ($contact == null) {
+            return response()->json([
+                'message' => "Contact not found!",
+            ], 404);
+        }
+
+        $typeAccounts = TypeAccount::whereIn(
+            'id',
+            [$contactTransactionRequest->credit_account_id, $contactTransactionRequest->debit_account_id]
+        )->where(
+            [
+                ['deleted', 0],
+                ['type_id', $contact->type_id],
+            ]
+        )->get();
+
+        $isCreditAccountFound = false;
+        $isDebitAccountFound = false;
+
+
+        foreach ($typeAccounts as $typeAccount) {
+            if ($typeAccount->account_id == $contactTransactionRequest->credit_account_id) {
+                $isCreditAccountFound = true;
+            } else if ($typeAccount->account_id == $contactTransactionRequest->debit_account_id) {
+                $isDebitAccountFound = true;
+            }
+        }
+
+        if (!$isCreditAccountFound || !$isDebitAccountFound) {
+            return response()->json([
+                'message' => "Credit or Debit account not found for this contact!",
+            ], 404);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $journal = Journal::create([
+                'credit_account_id' => $contactTransactionRequest->credit_account_id,
+                'debit_account_id' => $contactTransactionRequest->debit_account_id,
+                'amount' => $contactTransactionRequest->amount,
+                'comment' => $contactTransactionRequest->comment,
+                'contact_id' => $contactTransactionRequest->contact_id,
+            ]);
+
+            Transaction::insert([
+                [
+                    'credit_account_id' => $contactTransactionRequest->credit_account_id,
+                    'debit_account_id' => $contactTransactionRequest->debit_account_id,
+                    'amount' => $contactTransactionRequest->amount,
+                    'transaction_type' => 'credit',
+                    'journal_id' => $journal->id,
+                ],
+                [
+                    'credit_account_id' => $contactTransactionRequest->credit_account_id,
+                    'debit_account_id' => $contactTransactionRequest->debit_account_id,
+                    'amount' => $contactTransactionRequest->amount,
+                    'transaction_type' => 'debit',
+                    'journal_id' => $journal->id,
+                ],
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => "Transaction Created successfully!",
             ], 200);
         } catch (\Exception $exp) {
             DB::rollBack();

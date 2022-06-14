@@ -34,6 +34,7 @@ Route::delete('/users/{user}', [UserController::class, 'destroy'])->middleware('
 
 Route::get('/transactions', [TransactionController::class, 'index'])->middleware('auth:sanctum');
 Route::post('/transactions', [TransactionController::class, 'store'])->middleware('auth:sanctum');
+Route::post('/transactions/contact', [TransactionController::class, 'contactTransaction'])->middleware('auth:sanctum');
 Route::put('/transactions/revert/{journalId}', [TransactionController::class, 'revertTransaction'])->middleware('auth:sanctum');
 Route::put('/transactions/{transaction}', [TransactionController::class, 'update'])->middleware('auth:sanctum');
 Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy'])->middleware('auth:sanctum');
