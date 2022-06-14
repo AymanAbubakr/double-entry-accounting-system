@@ -15,12 +15,19 @@ class TransactionController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $transactions = Transaction::all()->where('deleted', 0);
+        $result = [];
+
+        if ($request->query('type') == 'single') {
+            $result = Journal::all()->where('deleted', 0);
+        } else {
+            $result = Transaction::all()->where('deleted', 0);
+        }
+
 
         return response()->json([
-            'transactions' => $transactions
+            'transactions' => $result,
         ]);
     }
 
@@ -54,7 +61,7 @@ class TransactionController extends Controller
             $journal = Journal::create([
                 'credit_account_id' => $transactionRequest->credit_account_id,
                 'debit_account_id' => $transactionRequest->debit_account_id,
-                'amount' => $transactionRequest->credit_amount,
+                'amount' => $transactionRequest->amount,
                 'comment' => $transactionRequest->comment,
             ]);
 
@@ -62,18 +69,16 @@ class TransactionController extends Controller
                 [
                     'credit_account_id' => $transactionRequest->credit_account_id,
                     'debit_account_id' => $transactionRequest->debit_account_id,
-                    'credit_amount' => $transactionRequest->credit_amount,
-                    'debit_amount' => 0,
+                    'amount' => $transactionRequest->amount,
+                    'transaction_type' => 'credit',
                     'journal_id' => $journal->id,
-                    'comment' => $transactionRequest->comment,
                 ],
                 [
                     'credit_account_id' => $transactionRequest->credit_account_id,
                     'debit_account_id' => $transactionRequest->debit_account_id,
-                    'credit_amount' => 0,
-                    'debit_amount' =>  $transactionRequest->credit_amount,
+                    'amount' => $transactionRequest->amount,
+                    'transaction_type' => 'debit',
                     'journal_id' => $journal->id,
-                    'comment' => $transactionRequest->comment,
                 ],
             ]);
 
@@ -91,12 +96,16 @@ class TransactionController extends Controller
         }
     }
 
-    public function revertTransaction($id)
+    public function revertTransaction($journalId)
     {
-        try {
-            $transaction = Transaction::find($id);
 
-            if ($transaction->is_null) {
+        try {
+            $journalTransaction = Journal::where([
+                ['id', $journalId],
+                ['deleted', 0]
+            ])->first();
+
+            if ($journalTransaction == null) {
                 return response()->json([
                     'message' => "Transaction not found!",
                 ], 404);
@@ -105,33 +114,32 @@ class TransactionController extends Controller
             DB::beginTransaction();
 
             $journal = Journal::create([
-                'credit_account_id' => $transaction->credit_account_id,
-                'debit_account_id' => $transaction->debit_account_id,
-                'amount' => $transaction->credit_amount,
-                'comment' => $transaction->comment,
+                'credit_account_id' => $journalTransaction->credit_account_id,
+                'debit_account_id' => $journalTransaction->debit_account_id,
+                'amount' => $journalTransaction->amount,
+                'comment' => $journalTransaction->comment,
+                'reference_id' => $journalId,
             ]);
-    
+
             Transaction::insert([
                 [
-                    'credit_account_id' => $transaction->debit_account_id,
-                    'debit_account_id' => $transaction->credit_account_id,
-                    'credit_amount' => $transaction->credit_amount,
-                    'debit_amount' => 0,
+                    'credit_account_id' => $journalTransaction->debit_account_id,
+                    'debit_account_id' => $journalTransaction->credit_account_id,
+                    'amount' => $journalTransaction->amount,
+                    'transaction_type' => 'credit',
                     'journal_id' => $journal->id,
-                    'comment' => $transaction->comment,
                 ],
                 [
-                    'credit_account_id' => $transaction->debit_account_id,
-                    'debit_account_id' => $transaction->credit_account_id,
-                    'credit_amount' => 0,
+                    'credit_account_id' => $journalTransaction->debit_account_id,
+                    'debit_account_id' => $journalTransaction->credit_account_id,
+                    'amount' => $journalTransaction->amount,
+                    'transaction_type' => 'debit',
                     'journal_id' => $journal->id,
-                    'debit_amount' =>  $transaction->credit_amount,
-                    'comment' => $transaction->comment,
                 ],
             ]);
 
             DB::commit();
-    
+
             return response()->json([
                 'message' => "Transaction Reverted successfully!",
             ], 200);
