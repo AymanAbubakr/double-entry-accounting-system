@@ -18,6 +18,7 @@ return new class extends Migration
             $table->integer('credit_account_id');
             $table->integer('debit_account_id');
             $table->integer('reference_id')->default(0);
+            $table->integer('contact_id')->default(0);
             $table->double('amount');
             $table->string('comment')->default('');
             $table->tinyInteger('deleted')->default(0);

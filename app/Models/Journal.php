@@ -16,5 +16,6 @@ class Journal extends Model
         'amount',
         'comment',
         'reference_id',
+        'contact_id',
     ];
 }
