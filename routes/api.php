@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,13 @@ Route::get('/users', [UserController::class, 'index']);
 Route::post('/users', [UserController::class, 'store']);
 Route::put('/users/{user}', [UserController::class, 'update']);
 Route::delete('/users/{user}', [UserController::class, 'destroy']);
+
+
+Route::get('/transactions', [TransactionController::class, 'index']);
+Route::post('/transactions', [TransactionController::class, 'store']);
+Route::put('/transactions/revert/{journalId}', [TransactionController::class, 'revertTransaction']);
+Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);
+Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
 
 
 Route::get('/', function () {
