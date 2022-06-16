@@ -41,8 +41,8 @@ class TransactionController extends BaseController
 
             DB::beginTransaction();
 
-            $journal = Journal::addRow($transactionRequest->all());
-            Transaction::batchInsert($transactionRequest->all(), $journal->id);
+            $journal = Journal::addRow($transactionRequest);
+            Transaction::batchInsert($transactionRequest, $journal->id);
 
             DB::commit();
 
@@ -67,7 +67,10 @@ class TransactionController extends BaseController
 
             DB::beginTransaction();
 
-
+            //Switch sender and receiver to revert transaction
+            $temp = $journalTransaction->credit_account_id;
+            $journalTransaction->credit_account_id = $journalTransaction->debit_account_id;
+            $journalTransaction->debit_account_id = $temp;
             $journal = Journal::addRow($journalTransaction);;
 
             Transaction::batchInsert($journalTransaction, $journal->id);
@@ -107,9 +110,12 @@ class TransactionController extends BaseController
         try {
             DB::beginTransaction();
 
-            $journal = Journal::addRow($contactTransactionRequest->all());
+            $journal = Journal::addRow($contactTransactionRequest);
 
-            Transaction::batchInsert($contactTransactionRequest->all(), $journal->id);
+            Transaction::batchInsert(
+                $contactTransactionRequest,
+                $journal->id
+            );
 
             DB::commit();
 
