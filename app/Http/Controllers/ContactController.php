@@ -35,6 +35,13 @@ class ContactController extends BaseController
         return $this->sendResponse($contact, 'Contact created successfully.');
     }
 
+    public function assignTypes(Request $request, Contact $contact)
+    {
+        Contact::batchUpdateAssigning($request->all(), $contact);
+
+        return $this->sendResponse($contact, 'Contact types assigned successfully.');
+    }
+
 
     /**
      * Update the specified resource in storage.
