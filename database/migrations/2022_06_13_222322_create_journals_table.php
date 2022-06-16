@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->integer('credit_account_id');
             $table->integer('debit_account_id');
-            $table->integer('reference_id')->default(0);
+            $table->integer('reference_id')->default(0)->nullable();
             $table->integer('contact_id')->default(0);
             $table->double('amount');
             $table->string('comment')->default('');
