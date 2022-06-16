@@ -27,4 +27,9 @@ class Contact extends Model
             ['deleted', 0]
         ])->first();
     }
+
+    public static function batchUpdateAssigning($request, $contact)
+    {
+        return TypeAccount::handlerAssigning($request, $contact);
+    }
 }
