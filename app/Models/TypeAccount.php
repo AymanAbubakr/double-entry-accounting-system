@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class TypeAccount extends Model
 {
     use HasFactory;
 
-    protected $table = 'type_account';
+
     protected $fillable = [
         'type_id',
         'account_id',
@@ -24,8 +25,8 @@ class TypeAccount extends Model
     public static function canProcessTransaction($creditAccountId, $debitAccountId, $typeId)
     {
 
-        $typeAccounts = TypeAccount::whereIn(
-            'id',
+        $typeAccounts = DB::table('type_account')->whereIn(
+            'account_id',
             [$creditAccountId, $debitAccountId]
         )->where(
             [
@@ -47,5 +48,41 @@ class TypeAccount extends Model
         }
 
         return $isCreditAccountFound && $isDebitAccountFound;
+    }
+
+
+    public static function handlerAssigning($request, $contact)
+    {
+        try {
+            DB::beginTransaction();
+
+            DB::table('type_account')->update(
+                [
+                    'deleted' => 1,
+                ],
+                [
+                    'type_id' => $contact->type_id,
+                    'deleted' => 0,
+                ]
+            );
+            $dataToInsert = [];
+
+            foreach ($request['accounts'] as $accounntId) {
+                $dataToInsert[] = [
+                    'type_id' => $contact->type_id,
+                    'account_id' => $accounntId,
+                    'deleted' => 0,
+                ];
+            }
+            if (count($dataToInsert) > 0) {
+                DB::table('type_account')->insert($dataToInsert);
+            }
+
+            DB::commit();
+            return true;
+        } catch (\Exception $th) {
+            DB::rollBack();
+            throw $th;
+        }
     }
 }
