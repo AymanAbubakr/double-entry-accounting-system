@@ -40,9 +40,9 @@ class Journal extends Model
             'credit_account_id' => $data->credit_account_id,
             'debit_account_id' => $data->debit_account_id,
             'amount' => $data->amount,
-            'comment' => $data->comment,
-            'reference_id' => $data->reference_id,
-            'contact_id' => $data->contact_id,
+            'comment' => $data->comment ?? '',
+            'reference_id' => $data->reference_id ?? 0,
+            'contact_id' => $data->contact_id ?? 0,
         ]);
     }
 }

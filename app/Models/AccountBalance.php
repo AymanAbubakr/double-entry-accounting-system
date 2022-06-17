@@ -57,7 +57,6 @@ class AccountBalance extends Model
         $receiverAccount = AccountBalance::getOne($transaction->debit_account_id);
 
         if (!$senderAccount) {
-            echo "sender account not found";
             AccountBalance::insertNewAccount(
                 (object)[
                     'account_id' => $transaction->credit_account_id,
@@ -74,7 +73,6 @@ class AccountBalance extends Model
         }
 
         if (!$receiverAccount) {
-            echo "reciver account not found";
             AccountBalance::insertNewAccount(
                 (object)[
                     'account_id' => $transaction->debit_account_id,

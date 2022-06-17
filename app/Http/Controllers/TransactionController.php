@@ -6,6 +6,7 @@ use App\Http\Requests\ContactTransactionRequest;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Http\Requests\TransactionRequest;
+use App\Jobs\TransactionJobs;
 use App\Models\Account;
 use App\Models\AccountBalance;
 use App\Models\Contact;
@@ -36,28 +37,14 @@ class TransactionController extends BaseController
      */
     public function store(TransactionRequest $transactionRequest)
     {
-        try {
-            if ($transactionRequest->credit_account_id == $transactionRequest->debit_account_id) {
-                return $this->sendError('Debit and credit accounts cannot be the same.', [], 400);
-            }
-
-            DB::beginTransaction();
-
-            $journal = Journal::addRow($transactionRequest);
-
-            AccountBalance::refelectAccountBalance($transactionRequest);
-
-            Transaction::batchInsert($transactionRequest, $journal->id);
-
-            DB::commit();
-
-            return $this->sendResponse($journal, 'Transaction created successfully.');
-        } catch (\Exception $exp) {
-            DB::rollBack();
-            return response([
-                'message' => $exp->getMessage(),
-            ], 400);
+        if ($transactionRequest->credit_account_id == $transactionRequest->debit_account_id) {
+            return $this->sendError('Debit and credit accounts cannot be the same.', [], 400);
         }
+
+        $transactionRequest['transactionType'] = 'store';
+        $this->dispatch(new TransactionJobs($transactionRequest->all()));
+
+        return $this->sendResponse([], 'Transaction placed successfully.');
     }
 
     public function revertTransaction($journalId)
@@ -70,70 +57,44 @@ class TransactionController extends BaseController
                 return $this->sendError('Transaction not found.', [], 404);
             }
 
-            DB::beginTransaction();
+            $journalTransaction['transactionType'] = 'revert';
+            $this->dispatch(new TransactionJobs($journalTransaction));
 
-            //Switch sender and receiver to revert transaction
-            $temp = $journalTransaction->credit_account_id;
-            $journalTransaction->credit_account_id = $journalTransaction->debit_account_id;
-            $journalTransaction->debit_account_id = $temp;
-            $journalTransaction->reference_id = $journalId;
-
-            $journal = Journal::addRow($journalTransaction);
-
-            AccountBalance::refelectAccountBalance($journalTransaction);
-
-            Transaction::batchInsert($journalTransaction, $journal->id);
-
-            DB::commit();
-
-            return $this->sendResponse($journal, 'Transaction reverted successfully.');
+            return $this->sendResponse([], 'Transaction placed successfully.');
         } catch (\Exception $exp) {
-            DB::rollBack();
             return $this->sendError($exp->getMessage(), [], 400);
         }
     }
 
     public function contactTransaction(ContactTransactionRequest $contactTransactionRequest)
     {
-
-        if ($contactTransactionRequest->credit_account_id == $contactTransactionRequest->debit_account_id) {
-            return $this->sendError('Debit and credit accounts cannot be the same.', [], 400);;
-        }
-
-        $contact = Contact::getOne($contactTransactionRequest->contact_id);
-
-        if ($contact == null) {
-            return $this->sendError('Contact not found.', [], 404);
-        }
-
-        $isAccountsAreValid = TypeAccount::canProcessTransaction(
-            $contactTransactionRequest->credit_account_id,
-            $contactTransactionRequest->debit_account_id,
-            $contact->type_id
-        );
-
-        if (!$isAccountsAreValid) {
-            return $this->sendError('Accounts are not valid for this contact.', [], 404);
-        }
-
         try {
-            DB::beginTransaction();
 
-            $journal = Journal::addRow($contactTransactionRequest);
+            if ($contactTransactionRequest->credit_account_id == $contactTransactionRequest->debit_account_id) {
+                return $this->sendError('Debit and credit accounts cannot be the same.', [], 400);;
+            }
 
-            AccountBalance::refelectAccountBalance($contactTransactionRequest);
+            $contact = Contact::getOne($contactTransactionRequest->contact_id);
 
-            Transaction::batchInsert(
-                $contactTransactionRequest,
-                $journal->id
+            if ($contact == null) {
+                return $this->sendError('Contact not found.', [], 404);
+            }
+
+            $isAccountsAreValid = TypeAccount::canProcessTransaction(
+                $contactTransactionRequest->credit_account_id,
+                $contactTransactionRequest->debit_account_id,
+                $contact->type_id
             );
 
-            DB::commit();
+            if (!$isAccountsAreValid) {
+                return $this->sendError('Accounts are not valid for this contact.', [], 404);
+            }
 
-            return $this->sendResponse($journal, 'Transaction created successfully.');
+            $contactTransactionRequest['transactionType'] = 'contact';
+            $this->dispatch(new TransactionJobs($contactTransactionRequest->all()));
+
+            return $this->sendResponse([], 'Transaction placed successfully.');
         } catch (\Exception $exp) {
-            DB::rollBack();
-
             return $this->sendError($exp->getMessage(), [], 400);
         }
     }
@@ -157,6 +118,5 @@ class TransactionController extends BaseController
         $balance = AccountBalance::getAccountsBalance($accountIds);
 
         return $this->sendResponse($balance, "Total Balance of account #${accountId} and his sub accounts.");
-        
     }
 }
