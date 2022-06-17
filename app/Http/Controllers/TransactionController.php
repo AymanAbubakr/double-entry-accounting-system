@@ -6,6 +6,7 @@ use App\Http\Requests\ContactTransactionRequest;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Http\Requests\TransactionRequest;
+use App\Models\AccountBalance;
 use App\Models\Contact;
 use Illuminate\Support\Facades\DB;
 use App\Models\Journal;
@@ -38,10 +39,14 @@ class TransactionController extends BaseController
             if ($transactionRequest->credit_account_id == $transactionRequest->debit_account_id) {
                 return $this->sendError('Debit and credit accounts cannot be the same.', [], 400);
             }
+            // dispatch(new TransactionJobs($transactionRequest));
 
             DB::beginTransaction();
 
             $journal = Journal::addRow($transactionRequest);
+
+            AccountBalance::refelectAccountBalance($transactionRequest);
+
             Transaction::batchInsert($transactionRequest, $journal->id);
 
             DB::commit();
@@ -71,7 +76,11 @@ class TransactionController extends BaseController
             $temp = $journalTransaction->credit_account_id;
             $journalTransaction->credit_account_id = $journalTransaction->debit_account_id;
             $journalTransaction->debit_account_id = $temp;
-            $journal = Journal::addRow($journalTransaction);;
+            $journalTransaction->reference_id = $journalId;
+
+            $journal = Journal::addRow($journalTransaction);
+
+            AccountBalance::refelectAccountBalance($journalTransaction);
 
             Transaction::batchInsert($journalTransaction, $journal->id);
 
@@ -111,6 +120,8 @@ class TransactionController extends BaseController
             DB::beginTransaction();
 
             $journal = Journal::addRow($contactTransactionRequest);
+
+            AccountBalance::refelectAccountBalance($contactTransactionRequest);
 
             Transaction::batchInsert(
                 $contactTransactionRequest,
