@@ -30,7 +30,23 @@ class AccountController extends BaseController
      */
     public function store(AccountRequest $accountRequest)
     {
-        $account = Account::create($accountRequest->all());
+
+        $parent_tree_ids = [];
+        if ($accountRequest->parent_id) {
+            $parent_parent_tree_ids = Account::find($accountRequest->parent_id)->parent_tree_ids;
+            if ($parent_parent_tree_ids) {
+                $parent_tree_ids = $parent_parent_tree_ids;
+                array_unshift($parent_tree_ids, $accountRequest->parent_id);
+            }
+        }
+
+        $account = Account::create(
+            [
+                'name' => $accountRequest->name,
+                'parent_id' => $accountRequest->parent_id,
+                'parent_tree_ids' => $parent_tree_ids,
+            ]
+        );
 
         return $this->sendResponse($account, 'Account created successfully.');
     }
@@ -46,7 +62,23 @@ class AccountController extends BaseController
      */
     public function update(AccountRequest $accountRequest, Account $account)
     {
-        $account->update($accountRequest->all());
+
+        $parent_tree_ids = [];
+        if ($accountRequest->parent_id) {
+            $parent_parent_tree_ids = Account::find($accountRequest->parent_id)->parent_tree_ids;
+            if ($parent_parent_tree_ids) {
+                $parent_tree_ids = $parent_parent_tree_ids;
+                array_unshift($parent_tree_ids, $accountRequest->parent_id);
+            }
+        }
+
+        $account->update(
+            [
+                'name' => $accountRequest->name,
+                'parent_id' => $accountRequest->parent_id,
+                'parent_tree_ids' => $parent_tree_ids,
+            ]
+        );
 
         return $this->sendResponse($account, 'Account updated successfully.');
     }
