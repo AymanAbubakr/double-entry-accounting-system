@@ -25,78 +25,29 @@ Route::group(
     'middleware' => 'auth:sanctum',
   ],
   function ($router) {
-    Route::get('/accounts', [AccountController::class, 'index']);
-    Route::post('/accounts', [AccountController::class, 'store']);
-    Route::put('/accounts/{account}', [AccountController::class, 'update']);
-    Route::delete('/accounts/{account}', [AccountController::class, 'destroy']);
-  }
-);
+    //! Accounts
+    Route::resource('accounts', AccountController::class);
 
-Route::group(
-  [
-    'middleware' => 'auth:sanctum',
-  ],
-  function ($router) {
-    Route::get('/users', [UserController::class, 'index']);
-    Route::post('/users', [UserController::class, 'store']);
-    Route::put('/users/{user}', [UserController::class, 'update']);
-    Route::delete('/users/{user}', [UserController::class, 'destroy']);
-  }
-);
+    //! Users
+    Route::resource('users', UserController::class);
 
-
-Route::group(
-  [
-    'middleware' => 'auth:sanctum',
-  ],
-  function ($router) {
-    Route::get('/transactions', [TransactionController::class, 'index']);
-    Route::post('/transactions', [TransactionController::class, 'store']);
+    //! Transactions
+    Route::resource('transactions', TransactionController::class);
     Route::post('/transactions/contact', [TransactionController::class, 'contactTransaction']);
     Route::put('/transactions/revert/{journalId}', [TransactionController::class, 'revertTransaction']);
-    Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);
-    Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
-  }
-);
 
-
-Route::group(
-  [
-    'middleware' => 'auth:sanctum',
-  ],
-  function ($router) {
-    Route::get('/contacts', [ContactController::class, 'index']);
-    Route::post('/contacts', [ContactController::class, 'store']);
-    Route::put('/contacts/{contact}', [ContactController::class, 'update']);
+    //! Contacts
+    Route::resource('contacts', ContactController::class);
     Route::put('/contacts/assign/{contact}', [ContactController::class, 'assignTypes']);
-    Route::delete('/contacts/{contact}', [ContactController::class, 'destroy']);
+
+    //! Contact Types
+    Route::resource('contactTypes', ContactTypeController::class);
+
+    //! Type Accounts
+    Route::resource('typeAccount', TypeAccountController::class);
   }
 );
 
-Route::group(
-  [
-    'middleware' => 'auth:sanctum',
-  ],
-  function ($router) {
-    Route::get('/contactTypes', [ContactTypeController::class, 'index']);
-    Route::post('/contactTypes', [ContactTypeController::class, 'store']);
-    Route::put('/contactTypes/{contactType}', [ContactTypeController::class, 'update']);
-    Route::delete('/contactTypes/{contactType}', [ContactTypeController::class, 'destroy']);
-  }
-);
-
-
-Route::group(
-  [
-    'middleware' => 'auth:sanctum',
-  ],
-  function ($router) {
-    Route::get('/typeAccount', [TypeAccountController::class, 'index']);
-    Route::post('/typeAccount', [TypeAccountController::class, 'store']);
-    Route::put('/typeAccount/{typeAccount}', [TypeAccountController::class, 'update']);
-    Route::delete('/typeAccount/{typeAccount}', [TypeAccountController::class, 'destroy']);
-  }
-);
 
 
 
