@@ -2,21 +2,18 @@
 
 namespace Tests\Feature;
 
-use App\Models\Account;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class AccountControllerTest extends TestCase
+class UserAccountControllerTest extends TestCase
 {
     use RefreshDatabase;
-
-
     public function test_get_all()
     {
         $user = User::factory()->create();
         $this->actingAs($user);
-        $response = $this->get('/api/accounts');
+        $response = $this->get('/api/users');
 
         $response->assertStatus(200);
     }
@@ -28,11 +25,11 @@ class AccountControllerTest extends TestCase
         $this->actingAs($user);
 
         $response = $this->post(
-            '/api/accounts',
+            '/api/users',
             [
                 'name' => 'Test User',
-                'parent_id' => 0,
-                'parent_tree_ids' => []
+                'email' => 'test@test.com',
+                'password' => '12345678'
             ]
         );
 
@@ -45,14 +42,14 @@ class AccountControllerTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $account = Account::create([
-            'name' => 'For Testing',
-            'parent_id' => 0,
-            'parent_tree_ids' => []
+        $createdUser = User::create([
+            'name' => 'Test User',
+            'email' => 'test@test.com',
+            'password' => '12345678'
         ]);
 
         $response = $this->put(
-            "/api/accounts/{$account->id}",
+            "/api/users/{$createdUser->id}",
             [
                 'name' => 'Test User',
                 'parent_id' => 0
@@ -68,14 +65,14 @@ class AccountControllerTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $account = Account::create([
-            'name' => 'For Testing',
-            'parent_id' => 0,
-            'parent_tree_ids' => []
+        $createdUser = User::create([
+            'name' => 'Test User',
+            'email' => 'test@test.com',
+            'password' => '12345678'
         ]);
 
         $response = $this->delete(
-            "/api/accounts/{$account->id}",
+            "/api/users/{$createdUser->id}",
         );
 
         $response->assertStatus(200);

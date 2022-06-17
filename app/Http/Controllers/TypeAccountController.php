@@ -28,7 +28,7 @@ class TypeAccountController extends BaseController
     public function store(Request $request)
     {
         $typeAccount = TypeAccount::create(
-            $request->only(['name', 'type_id'])
+            $request->only(['account_id', 'type_id'])
         );
 
         return $this->sendResponse($typeAccount, 'TypeAccount created successfully.');
@@ -46,7 +46,7 @@ class TypeAccountController extends BaseController
     public function update(Request $request, TypeAccount $typeAccount)
     {
         $typeAccount->update(
-            $request->only(['name', 'type_id'])
+            $request->only(['account_id', 'type_id'])
         );
 
         return $this->sendResponse($typeAccount, 'TypeAccount updated successfully.');

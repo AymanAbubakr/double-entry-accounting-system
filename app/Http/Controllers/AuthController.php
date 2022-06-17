@@ -9,7 +9,6 @@ use App\Http\Requests\AuthRequest;
 use App\Http\Requests\AuthRequestLogin;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {

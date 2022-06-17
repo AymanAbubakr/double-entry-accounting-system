@@ -10,7 +10,7 @@ class TypeAccount extends Model
 {
     use HasFactory;
 
-
+    protected $table = 'type_account';
     protected $fillable = [
         'type_id',
         'account_id',

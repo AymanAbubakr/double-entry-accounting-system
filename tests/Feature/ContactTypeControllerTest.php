@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\Account;
+use App\Models\ContactType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class AccountControllerTest extends TestCase
+class ContactTypeControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -16,7 +16,7 @@ class AccountControllerTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user);
-        $response = $this->get('/api/accounts');
+        $response = $this->get('/api/contactTypes');
 
         $response->assertStatus(200);
     }
@@ -28,11 +28,9 @@ class AccountControllerTest extends TestCase
         $this->actingAs($user);
 
         $response = $this->post(
-            '/api/accounts',
+            '/api/contactTypes',
             [
-                'name' => 'Test User',
-                'parent_id' => 0,
-                'parent_tree_ids' => []
+                'name' => 'Test',
             ]
         );
 
@@ -45,17 +43,15 @@ class AccountControllerTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $account = Account::create([
-            'name' => 'For Testing',
-            'parent_id' => 0,
-            'parent_tree_ids' => []
+        $contactType = ContactType::create([
+            'name' => 'Test User',
+            'type_id' => 0,
         ]);
 
         $response = $this->put(
-            "/api/accounts/{$account->id}",
+            "/api/contactTypes/{$contactType->id}",
             [
-                'name' => 'Test User',
-                'parent_id' => 0
+                'name' => 'Test',
             ]
         );
 
@@ -68,14 +64,12 @@ class AccountControllerTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $account = Account::create([
-            'name' => 'For Testing',
-            'parent_id' => 0,
-            'parent_tree_ids' => []
+        $contactType = ContactType::create(  [
+            'name' => 'Test',
         ]);
 
         $response = $this->delete(
-            "/api/accounts/{$account->id}",
+            "/api/contactTypes/{$contactType->id}",
         );
 
         $response->assertStatus(200);

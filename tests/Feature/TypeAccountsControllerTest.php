@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\Account;
+use App\Models\TypeAccount;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class AccountControllerTest extends TestCase
+class TypeAccountsControllerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -16,7 +16,7 @@ class AccountControllerTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user);
-        $response = $this->get('/api/accounts');
+        $response = $this->get('/api/typeAccount');
 
         $response->assertStatus(200);
     }
@@ -28,11 +28,10 @@ class AccountControllerTest extends TestCase
         $this->actingAs($user);
 
         $response = $this->post(
-            '/api/accounts',
+            '/api/typeAccount',
             [
-                'name' => 'Test User',
-                'parent_id' => 0,
-                'parent_tree_ids' => []
+                'type_id' => 1,
+                'account_id' => 1,
             ]
         );
 
@@ -45,17 +44,16 @@ class AccountControllerTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $account = Account::create([
-            'name' => 'For Testing',
-            'parent_id' => 0,
-            'parent_tree_ids' => []
+        $typeAccount = TypeAccount::create([
+            'type_id' => 1,
+            'account_id' => 1,
         ]);
 
         $response = $this->put(
-            "/api/accounts/{$account->id}",
+            "/api/typeAccount/{$typeAccount->id}",
             [
-                'name' => 'Test User',
-                'parent_id' => 0
+                'type_id' => 1,
+                'account_id' => 1,
             ]
         );
 
@@ -68,14 +66,13 @@ class AccountControllerTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $account = Account::create([
-            'name' => 'For Testing',
-            'parent_id' => 0,
-            'parent_tree_ids' => []
+        $typeAccount = TypeAccount::create([
+            'type_id' => 1,
+            'account_id' => 1,
         ]);
 
         $response = $this->delete(
-            "/api/accounts/{$account->id}",
+            "/api/typeAccount/{$typeAccount->id}",
         );
 
         $response->assertStatus(200);
