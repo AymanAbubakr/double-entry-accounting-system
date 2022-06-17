@@ -40,7 +40,6 @@ class TransactionController extends BaseController
             if ($transactionRequest->credit_account_id == $transactionRequest->debit_account_id) {
                 return $this->sendError('Debit and credit accounts cannot be the same.', [], 400);
             }
-            // dispatch(new TransactionJobs($transactionRequest));
 
             DB::beginTransaction();
 
