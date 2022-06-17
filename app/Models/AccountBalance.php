@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class AccountBalance extends Model
 {
@@ -52,11 +53,8 @@ class AccountBalance extends Model
 
     public static function refelectAccountBalance($transaction)
     {
-        echo "hatm";
         $senderAccount = AccountBalance::getOne($transaction->credit_account_id);
-        echo "second hatm";
         $receiverAccount = AccountBalance::getOne($transaction->debit_account_id);
-        echo 'again hatm';
 
         if (!$senderAccount) {
             echo "sender account not found";
@@ -93,5 +91,18 @@ class AccountBalance extends Model
         }
 
         return true;
+    }
+
+    public static function getAccountsBalance($accountIds)
+    {
+        $accountBalance = AccountBalance::whereIn('account_id', $accountIds)
+            ->where('deleted', 0)
+            ->select(
+                DB::raw('SUM(total_credit_received) as total_credit_received'),
+                DB::raw('SUM(total_credit_sent) as total_credit_sent'),
+                DB::raw('SUM(total_balance) as total_balance')
+            )->get();
+
+        return $accountBalance;
     }
 }

@@ -33,6 +33,7 @@ Route::group(
 
     //! Transactions
     Route::resource('transactions', TransactionController::class);
+    Route::get('/transactions/balance/{accountId}',  [TransactionController::class, 'getBalance']);
     Route::post('/transactions/contact', [TransactionController::class, 'contactTransaction']);
     Route::put('/transactions/revert/{journalId}', [TransactionController::class, 'revertTransaction']);
 

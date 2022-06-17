@@ -6,6 +6,7 @@ use App\Http\Requests\ContactTransactionRequest;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Http\Requests\TransactionRequest;
+use App\Models\Account;
 use App\Models\AccountBalance;
 use App\Models\Contact;
 use Illuminate\Support\Facades\DB;
@@ -136,5 +137,27 @@ class TransactionController extends BaseController
 
             return $this->sendError($exp->getMessage(), [], 400);
         }
+    }
+
+    public function getBalance($accountId)
+    {
+        $account = Account::getOne($accountId);
+        if (!$account) {
+            return $this->sendError('Account not found.', [], 404);
+        }
+        $allAccounts = Account::getAll();
+
+        $accountIds = [$account->id];
+
+        foreach ($allAccounts as $eachAccount) {
+            if ($eachAccount->parent_tree_ids != null && in_array($accountId, $eachAccount->parent_tree_ids)) {
+                $accountIds[] = $eachAccount->id;
+            }
+        }
+
+        $balance = AccountBalance::getAccountsBalance($accountIds);
+
+        return $this->sendResponse($balance, "Total Balance of account #${accountId} and his sub accounts.");
+        
     }
 }
