@@ -91,6 +91,20 @@ class AccountController extends BaseController
      */
     public function destroy(Account $account)
     {
+
+        $childAccounts =  Account::where([
+            ['parent_id', $account->id],
+            ['deleted', 0]
+        ])->first();
+
+        if ($childAccounts) {
+            return $this->sendError(
+                'Account has child accounts! please remove the child then process the action.',
+                [],
+                400
+            );
+        }
+
         $account->update(['deleted' => 1]);
 
         return $this->sendResponse($account, 'Account deleted successfully.');
