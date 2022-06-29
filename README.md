@@ -23,7 +23,7 @@ This API contains multiple models including:
 
 
 ## DATABASE Structure
-<img src="db_digram.png" width="75%" height="170"/>
+<img src="db_digram.png" width="75%" height="250"/>
 
 
 
