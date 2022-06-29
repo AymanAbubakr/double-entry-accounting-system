@@ -37,6 +37,8 @@ class AccountController extends BaseController
             if ($parent_parent_tree_ids) {
                 $parent_tree_ids = $parent_parent_tree_ids;
                 array_unshift($parent_tree_ids, $accountRequest->parent_id);
+            } else {
+                $parent_tree_ids = [$accountRequest->parent_id];
             }
         }
 
